@@ -1,0 +1,29 @@
+{
+  "name": "lg-ten",
+  "private": true,
+  "packageManager": "pnpm@11.18.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test:contracts": "node --test tests/contracts/*.test.mjs",
+    "infra:config": "docker compose config --quiet && docker compose -f compose.simulation.yaml config --quiet",
+    "infra:up": "bash scripts/start-infra.sh",
+    "infra:check": "bash scripts/check-infra.sh",
+    "simulation:up": "bash scripts/start-infra.sh --simulation",
+    "framework:up": "bash scripts/start-infra.sh",
+    "dashboard:dev": "pnpm --filter dashboard dev --hostname 127.0.0.1 --port 3000",
+    "replay:start": "bash scripts/replay.sh start",
+    "replay:live": "bash scripts/replay.sh live",
+    "replay:stop": "bash scripts/replay.sh stop",
+    "local:health": "bash scripts/check-infra.sh --all",
+    "local:down": "docker compose down && docker compose -f compose.simulation.yaml --profile replay down"
+  },
+  "devDependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "turbo": "2.5.6"
+  }
+}

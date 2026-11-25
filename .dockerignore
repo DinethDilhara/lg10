@@ -1,0 +1,13 @@
+.git
+.env
+node_modules
+**/node_modules
+.pnpm-store
+**/.next
+datasets/raw
+datasets/labels
+artifacts
+research/results
+**/.venv
+**/__pycache__
+models

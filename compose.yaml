@@ -1,0 +1,221 @@
+name: lgten-framework
+
+services:
+  api:
+    image: lg-ten-api:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    depends_on:
+      postgres-migrate:
+        condition: service_completed_successfully
+      connector:
+        condition: service_started
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-lgten}
+      PGUSER: ${POSTGRES_USER:-lgten}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      CONNECTOR_URL: http://connector:8081
+      SOURCE_ID: ${SOURCE_ID:-demo}
+      GEMINI_ENABLED: ${GEMINI_API_KEY:+true}
+      LOCAL_OPENSEARCH_PORT: ${OPENSEARCH_PORT:-9200}
+      DASHBOARD_ORIGINS: ${DASHBOARD_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready', timeout=5)"]
+      interval: 10s
+      timeout: 6s
+      start_period: 20s
+      retries: 6
+    stop_grace_period: 50s
+    restart: on-failure
+
+  investigation:
+    image: lg-ten-investigation:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/investigation/Dockerfile
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres-migrate:
+        condition: service_completed_successfully
+      connector:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      CONNECTOR_URL: http://connector:8081
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-lgten}
+      PGUSER: ${POSTGRES_USER:-lgten}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      INVESTIGATION_AUTO_QUEUE: ${INVESTIGATION_AUTO_QUEUE:-false}
+      LLM_MODEL: ${LLM_MODEL:-gpt-6.1-terra}
+      INVESTIGATION_TOKEN_BUDGET: ${INVESTIGATION_TOKEN_BUDGET:-300000}
+      LANGSMITH_TRACING: "false"
+      LANGCHAIN_TRACING_V2: "false"
+    healthcheck:
+      test: [CMD, python, -c, "import pathlib,time; p=pathlib.Path('/tmp/investigation-health'); assert p.exists() and time.time()-float(p.read_text())<150"]
+      interval: 15s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    stop_grace_period: 130s
+    restart: "no"
+
+  anomaly-detection:
+    image: lg-ten-anomaly-detection:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/anomaly-detection/Dockerfile
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+      postgres-migrate:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-lgten}
+      PGUSER: ${POSTGRES_USER:-lgten}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      ALLOWED_LATENESS_SECONDS: ${ALLOWED_LATENESS_SECONDS:-35}
+      MODEL_DIR: /models/detector
+    volumes:
+      - ./models:/models:ro
+    healthcheck:
+      test: [CMD, python, -c, "import pathlib,time; p=pathlib.Path('/tmp/detector-health'); assert p.exists() and time.time()-float(p.read_text())<60"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 12
+    restart: on-failure
+
+  detector-train:
+    image: lg-ten-anomaly-detection:local
+    profiles: [training]
+    volumes:
+      - ./models:/models
+      - ./datasets/raw:/datasets/raw
+
+  connector:
+    image: lg-ten-connector:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/connector/Dockerfile
+    depends_on:
+      kafka-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      SOURCE_OPENSEARCH_URL: ${SOURCE_OPENSEARCH_URL:-http://host.docker.internal:${OPENSEARCH_PORT:-9200}}
+      SOURCE_INDEX: ${SOURCE_INDEX:-lg-ten-logs-v1}
+      SOURCE_ID: ${SOURCE_ID:-demo}
+      SOURCE_ALLOWED_HOSTS: ${SOURCE_ALLOWED_HOSTS:-host.docker.internal}
+      SOURCE_USERNAME: ${SOURCE_USERNAME:-}
+      SOURCE_PASSWORD: ${SOURCE_PASSWORD:-}
+      POLL_OVERLAP: ${POLL_OVERLAP:-30s}
+      CHECKPOINT_PATH: /state/checkpoint.json
+    volumes:
+      - connector-state:/state
+    ports:
+      - "127.0.0.1:${CONNECTOR_PORT:-8081}:8081"
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://localhost:8081/configuration]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: on-failure
+
+  kafka:
+    image: apache/kafka:3.9.1
+    environment:
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:${KAFKA_PORT:-19092}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx384m
+    ports:
+      - "127.0.0.1:${KAFKA_PORT:-19092}:19092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [CMD-SHELL, /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    restart: unless-stopped
+
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [/bin/bash, /init/topics.sh]
+    volumes:
+      - ./infrastructure/kafka/topics.sh:/init/topics.sh:ro
+    restart: "no"
+
+  postgres:
+    image: postgres:17.4-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-lgten}
+      POSTGRES_USER: ${POSTGRES_USER:-lgten}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  postgres-migrate:
+    image: postgres:17.4-alpine
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGHOST: postgres
+      PGDATABASE: ${POSTGRES_DB:-lgten}
+      PGUSER: ${POSTGRES_USER:-lgten}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      SOURCE_ID: ${SOURCE_ID:-demo}
+      SOURCE_OPENSEARCH_URL: ${SOURCE_OPENSEARCH_URL:-http://host.docker.internal:${OPENSEARCH_PORT:-9200}}
+      SOURCE_INDEX: ${SOURCE_INDEX:-lg-ten-logs-v1}
+    entrypoint: [sh, /migrate.sh]
+    volumes:
+      - ./infrastructure/postgres/migrations:/migrations:ro
+      - ./infrastructure/postgres/migrate.sh:/migrate.sh:ro
+      - ./infrastructure/postgres/register-source.sql:/register-source.sql:ro
+    restart: "no"
+
+volumes:
+  connector-state:
+  kafka-data:
+  postgres-data:

@@ -1,0 +1,150 @@
+name: lgten-simulation
+
+services:
+  log-replay:
+    image: lg-ten-log-replay:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/simulation/log-replay/Dockerfile
+    profiles: [replay]
+    volumes:
+      - ./datasets:/datasets:ro
+      - ./datasets/labels:/evaluation
+      - replay-logs:/logs
+    command:
+      - -dataset
+      - /datasets/${BGL_DATASET:-raw/bgl/BGL_2k.log}
+      - -format
+      - bgl
+      - -rate
+      - "${BGL_REPLAY_RATE:-20}"
+      - -source-id
+      - "${SOURCE_ID:-demo}"
+      - -labels
+      - /evaluation/${BGL_REPLAY_LABELS:-bgl-replay.jsonl}
+      - "-loop=${BGL_REPLAY_LOOP:-false}"
+
+  log-indexer:
+    image: lg-ten-log-indexer:local
+    pull_policy: missing
+    build:
+      context: .
+      dockerfile: services/simulation/log-indexer/Dockerfile
+    depends_on:
+      simulation-kafka-init:
+        condition: service_completed_successfully
+      opensearch-init:
+        condition: service_completed_successfully
+    environment:
+      KAFKA_BROKERS: kafka:9092
+      OPENSEARCH_URL: http://opensearch:9200
+      OPENSEARCH_INDEX: lg-ten-logs-v1
+    restart: on-failure
+
+  simulation-kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: [/bin/bash, /init/topics.sh, simulation.logs.raw.v1]
+    volumes:
+      - ./infrastructure/kafka/topics.sh:/init/topics.sh:ro
+    restart: "no"
+
+  fluent-bit:
+    image: fluent/fluent-bit:3.2.10
+    depends_on:
+      simulation-kafka-init:
+        condition: service_completed_successfully
+    volumes:
+      - ./infrastructure/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf:ro
+      - ./infrastructure/fluent-bit/parsers.conf:/fluent-bit/etc/parsers.conf:ro
+      - replay-logs:/logs:ro
+      - fluent-bit-state:/state
+    ports:
+      - "127.0.0.1:${FLUENT_BIT_PORT:-2020}:2020"
+    restart: unless-stopped
+
+  # The Fluent Bit image has no shell/curl. Probe its real HTTP health endpoint
+  # from a companion, rather than an invalid in-container curl healthcheck.
+  fluent-bit-health:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      fluent-bit:
+        condition: service_started
+    entrypoint: [/bin/sh, -c, "while :; do sleep 3600; done"]
+    healthcheck:
+      test: [CMD, curl, -fsS, http://fluent-bit:2020/api/v1/health]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  opensearch:
+    image: opensearchproject/opensearch:2.19.1
+    environment:
+      discovery.type: single-node
+      bootstrap.memory_lock: "true"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+      DISABLE_SECURITY_PLUGIN: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+    ulimits:
+      memlock: { soft: -1, hard: -1 }
+      nofile: { soft: 65536, hard: 65536 }
+    ports:
+      - "127.0.0.1:${OPENSEARCH_PORT:-9200}:9200"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: [CMD-SHELL, "curl -fsS 'http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s' | grep -q '\"timed_out\":false'"]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    restart: unless-stopped
+
+  opensearch-init:
+    image: curlimages/curl:8.12.1
+    depends_on:
+      opensearch:
+        condition: service_healthy
+    entrypoint: [/bin/sh, /init/init.sh]
+    volumes:
+      - ./infrastructure/opensearch:/init:ro
+    restart: "no"
+
+  kafka:
+    image: apache/kafka:3.9.1
+    environment:
+      CLUSTER_ID: N2U1M2I5MmM4ZWMxNDgwNg
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: INTERNAL://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      KAFKA_HEAP_OPTS: -Xms128m -Xmx384m
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: [CMD-SHELL, /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1]
+      interval: 10s
+      timeout: 10s
+      retries: 18
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  kafka-data:
+  opensearch-data:
+  replay-logs:
+  fluent-bit-state:
