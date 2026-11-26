@@ -1,0 +1,1702 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LG Ten API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/ready": {
+      "get": {
+        "summary": "Ready",
+        "operationId": "ready_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources/test": {
+      "post": {
+        "summary": "Test Source",
+        "operationId": "test_source_sources_test_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectionTest"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sources": {
+      "get": {
+        "summary": "Sources",
+        "operationId": "sources_sources_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Sources"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Configure Source",
+        "operationId": "configure_source_sources_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SourceConfig"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SourceView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs": {
+      "get": {
+        "summary": "Logs",
+        "operationId": "logs_logs_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 2048
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Logs"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/logs/metrics": {
+      "get": {
+        "summary": "Log Metrics",
+        "operationId": "log_metrics_logs_metrics_get",
+        "parameters": [
+          {
+            "name": "minutes",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 15,
+              "title": "Minutes"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogMetrics"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anomalies/{identifier}/investigation": {
+      "post": {
+        "summary": "Ensure Investigation",
+        "operationId": "ensure_investigation_anomalies__identifier__investigation_post",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/InvestigationRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anomalies": {
+      "get": {
+        "summary": "Anomalies",
+        "operationId": "anomalies_anomalies_get",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 50,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 2048
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Anomalies"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anomalies/{identifier}": {
+      "get": {
+        "summary": "Anomaly",
+        "operationId": "anomaly_anomalies__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnomalyView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigations/{identifier}/steps": {
+      "get": {
+        "summary": "Steps",
+        "operationId": "steps_investigations__identifier__steps_get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": -1,
+              "default": -1,
+              "title": "After"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Steps"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/investigations/{identifier}": {
+      "get": {
+        "summary": "Investigation",
+        "operationId": "investigation_investigations__identifier__get",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+              "title": "Identifier"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityBucket": {
+        "properties": {
+          "time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Time"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "time",
+          "count"
+        ],
+        "title": "ActivityBucket"
+      },
+      "Anomalies": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AnomalyView"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Anomalies"
+      },
+      "AnomalyView": {
+        "properties": {
+          "anomaly": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://lg-ten.local/contracts/v1/anomaly.schema.json",
+            "properties": {
+              "schema_version": {
+                "const": "1.0.0"
+              },
+              "anomaly_id": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+              },
+              "source_id": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+              },
+              "window_start": {
+                "type": "string",
+                "pattern": "Z$",
+                "format": "date-time"
+              },
+              "window_end": {
+                "type": "string",
+                "pattern": "Z$",
+                "format": "date-time"
+              },
+              "score": {
+                "type": "number"
+              },
+              "model_version": {
+                "type": "string",
+                "minLength": 1
+              },
+              "feature_summary": {
+                "properties": {
+                  "event_count": {
+                    "type": "integer",
+                    "minimum": 1.0
+                  },
+                  "error_count": {
+                    "type": "integer",
+                    "minimum": 0.0
+                  },
+                  "error_ratio": {
+                    "type": "number",
+                    "maximum": 1.0,
+                    "minimum": 0.0
+                  },
+                  "unique_message_count": {
+                    "type": "integer",
+                    "minimum": 1.0
+                  },
+                  "event_time_start": {
+                    "type": "string",
+                    "pattern": "Z$",
+                    "format": "date-time"
+                  },
+                  "event_time_end": {
+                    "type": "string",
+                    "pattern": "Z$",
+                    "format": "date-time"
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "event_count",
+                  "error_count",
+                  "error_ratio",
+                  "unique_message_count",
+                  "event_time_start",
+                  "event_time_end"
+                ]
+              },
+              "log_ids": {
+                "items": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "minLength": 1,
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                },
+                "type": "array",
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "schema_version",
+              "anomaly_id",
+              "source_id",
+              "window_start",
+              "window_end",
+              "score",
+              "model_version",
+              "feature_summary",
+              "log_ids"
+            ],
+            "title": "LG Ten anomaly v1"
+          },
+          "investigation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Investigation Id"
+          },
+          "investigation_status": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "pending",
+                  "running",
+                  "completed",
+                  "inconclusive",
+                  "failed"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Investigation Status"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "anomaly",
+          "investigation_id",
+          "investigation_status",
+          "created_at"
+        ],
+        "title": "AnomalyView"
+      },
+      "ConnectionTest": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "source_id": {
+            "type": "string",
+            "title": "Source Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "connected",
+          "source_id"
+        ],
+        "title": "ConnectionTest"
+      },
+      "Evidence": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "title": "Source Id"
+          },
+          "index": {
+            "type": "string",
+            "title": "Index"
+          },
+          "event_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "title": "Event Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "title": "Timestamp"
+          },
+          "excerpt": {
+            "type": "string",
+            "title": "Excerpt"
+          },
+          "log": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://lg-ten.local/contracts/v1/log.schema.json",
+            "properties": {
+              "schema_version": {
+                "const": "1.0.0"
+              },
+              "event_id": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+              },
+              "source_id": {
+                "type": "string",
+                "maxLength": 256,
+                "minLength": 1,
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+              },
+              "event_time": {
+                "type": "string",
+                "pattern": "Z$",
+                "format": "date-time"
+              },
+              "ingested_at": {
+                "type": "string",
+                "pattern": "Z$",
+                "format": "date-time"
+              },
+              "host": {
+                "type": "string",
+                "minLength": 1
+              },
+              "service": {
+                "type": "string",
+                "minLength": 1
+              },
+              "severity": {
+                "enum": [
+                  "TRACE",
+                  "DEBUG",
+                  "INFO",
+                  "WARN",
+                  "ERROR",
+                  "FATAL",
+                  "UNKNOWN"
+                ]
+              },
+              "message": {
+                "type": "string",
+                "minLength": 1
+              },
+              "attributes": {
+                "type": "object"
+              }
+            },
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "schema_version",
+              "event_id",
+              "source_id",
+              "event_time",
+              "ingested_at",
+              "host",
+              "service",
+              "severity",
+              "message"
+            ],
+            "title": "LG Ten log v1"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "index",
+          "event_id",
+          "timestamp",
+          "excerpt",
+          "log"
+        ],
+        "title": "Evidence"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ],
+            "title": "Status"
+          },
+          "api": {
+            "type": "string",
+            "const": "ok",
+            "title": "Api",
+            "default": "ok"
+          },
+          "postgres": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Postgres"
+          },
+          "connector": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "unavailable"
+            ],
+            "title": "Connector"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "postgres",
+          "connector"
+        ],
+        "title": "Health"
+      },
+      "InvestigationLink": {
+        "properties": {
+          "investigation_id": {
+            "type": "string",
+            "title": "Investigation Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "inconclusive",
+              "failed"
+            ],
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "investigation_id",
+          "status"
+        ],
+        "title": "InvestigationLink"
+      },
+      "InvestigationRequest": {
+        "properties": {
+          "provider": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "gpt",
+                  "gemini"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Provider"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "InvestigationRequest"
+      },
+      "InvestigationView": {
+        "properties": {
+          "investigation_id": {
+            "type": "string",
+            "title": "Investigation Id"
+          },
+          "anomaly_id": {
+            "type": "string",
+            "title": "Anomaly Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "inconclusive",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "report": {
+            "anyOf": [
+              {
+                "$schema": "https://json-schema.org/draft/2020-12/schema",
+                "$id": "https://lg-ten.local/contracts/v1/investigation.schema.json",
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "status": {
+                          "const": "completed"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "hypotheses": {
+                          "type": "array",
+                          "minItems": 1
+                        },
+                        "evidence": {
+                          "type": "array",
+                          "minItems": 1
+                        },
+                        "verification": {
+                          "properties": {
+                            "status": {
+                              "const": "supported"
+                            },
+                            "checks": {
+                              "type": "array",
+                              "minItems": 1
+                            }
+                          },
+                          "type": "object"
+                        },
+                        "agent_steps": {
+                          "type": "array",
+                          "minItems": 1
+                        }
+                      }
+                    }
+                  }
+                ],
+                "properties": {
+                  "schema_version": {
+                    "const": "1.0.0"
+                  },
+                  "investigation_id": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                  },
+                  "anomaly_id": {
+                    "type": "string",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                  },
+                  "status": {
+                    "enum": [
+                      "pending",
+                      "running",
+                      "completed",
+                      "inconclusive",
+                      "failed"
+                    ]
+                  },
+                  "hypotheses": {
+                    "items": {
+                      "properties": {
+                        "hypothesis_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "minLength": 1,
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                        },
+                        "claim": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "evidence_ids": {
+                          "items": {
+                            "type": "string",
+                            "maxLength": 256,
+                            "minLength": 1,
+                            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                          },
+                          "type": "array",
+                          "minItems": 1,
+                          "uniqueItems": true
+                        },
+                        "confidence": {
+                          "type": "number",
+                          "maximum": 1.0,
+                          "minimum": 0.0
+                        },
+                        "uncertainty": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "required": [
+                        "hypothesis_id",
+                        "claim",
+                        "evidence_ids",
+                        "confidence",
+                        "uncertainty"
+                      ]
+                    },
+                    "type": "array",
+                    "minItems": 0,
+                    "uniqueItems": true
+                  },
+                  "evidence": {
+                    "items": {
+                      "properties": {
+                        "evidence_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "minLength": 1,
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                        },
+                        "source_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "minLength": 1,
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                        },
+                        "index": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "event_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "minLength": 1,
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                        },
+                        "timestamp": {
+                          "type": "string",
+                          "pattern": "Z$",
+                          "format": "date-time"
+                        },
+                        "excerpt": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "required": [
+                        "evidence_id",
+                        "source_id",
+                        "index",
+                        "event_id",
+                        "timestamp",
+                        "excerpt"
+                      ]
+                    },
+                    "type": "array",
+                    "minItems": 0,
+                    "uniqueItems": true
+                  },
+                  "verification": {
+                    "properties": {
+                      "status": {
+                        "enum": [
+                          "pending",
+                          "supported",
+                          "unsupported",
+                          "inconclusive",
+                          "failed"
+                        ]
+                      },
+                      "checks": {
+                        "items": {
+                          "properties": {
+                            "hypothesis_id": {
+                              "type": "string",
+                              "maxLength": 256,
+                              "minLength": 1,
+                              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                            },
+                            "citation_valid": {
+                              "type": "boolean"
+                            },
+                            "semantic_support": {
+                              "enum": [
+                                "supported",
+                                "unsupported",
+                                "uncertain"
+                              ]
+                            },
+                            "summary": {
+                              "type": "string",
+                              "minLength": 1
+                            }
+                          },
+                          "additionalProperties": false,
+                          "type": "object",
+                          "required": [
+                            "hypothesis_id",
+                            "citation_valid",
+                            "semantic_support",
+                            "summary"
+                          ]
+                        },
+                        "type": "array",
+                        "minItems": 0,
+                        "uniqueItems": true
+                      }
+                    },
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "status",
+                      "checks"
+                    ]
+                  },
+                  "agent_steps": {
+                    "items": {
+                      "properties": {
+                        "execution_event_id": {
+                          "type": "string",
+                          "maxLength": 256,
+                          "minLength": 1,
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+                        },
+                        "sequence": {
+                          "type": "integer",
+                          "minimum": 0.0
+                        },
+                        "agent": {
+                          "enum": [
+                            "supervisor",
+                            "retrieval",
+                            "analysis",
+                            "verification"
+                          ]
+                        },
+                        "status": {
+                          "enum": [
+                            "started",
+                            "completed",
+                            "failed"
+                          ]
+                        },
+                        "occurred_at": {
+                          "type": "string",
+                          "pattern": "Z$",
+                          "format": "date-time"
+                        },
+                        "summary": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "additionalProperties": false,
+                      "type": "object",
+                      "required": [
+                        "execution_event_id",
+                        "sequence",
+                        "agent",
+                        "status",
+                        "occurred_at",
+                        "summary"
+                      ]
+                    },
+                    "type": "array",
+                    "minItems": 0,
+                    "uniqueItems": true
+                  },
+                  "duration_ms": {
+                    "type": "integer",
+                    "minimum": 0.0
+                  }
+                },
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "schema_version",
+                  "investigation_id",
+                  "anomaly_id",
+                  "status",
+                  "hypotheses",
+                  "evidence",
+                  "verification",
+                  "agent_steps",
+                  "duration_ms"
+                ],
+                "title": "LG Ten investigation v1"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "attempt_count": {
+            "type": "integer",
+            "title": "Attempt Count"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "investigation_id",
+          "anomaly_id",
+          "status",
+          "report",
+          "duration_ms",
+          "attempt_count",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "InvestigationView"
+      },
+      "LogMetrics": {
+        "properties": {
+          "start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start"
+          },
+          "end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "End"
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Total"
+          },
+          "activity": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityBucket"
+            },
+            "type": "array",
+            "title": "Activity"
+          },
+          "severity": {
+            "items": {
+              "$ref": "#/components/schemas/SeverityBucket"
+            },
+            "type": "array",
+            "title": "Severity"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "start",
+          "end",
+          "total",
+          "activity",
+          "severity"
+        ],
+        "title": "LogMetrics"
+      },
+      "Logs": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_cursor": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Cursor"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "title": "Logs"
+      },
+      "SeverityBucket": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "count"
+        ],
+        "title": "SeverityBucket"
+      },
+      "SourceConfig": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "title": "Source Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Endpoint"
+          },
+          "index_pattern": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._*-]*$",
+            "title": "Index Pattern"
+          },
+          "credentials_env_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "SOURCE"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credentials Env Ref"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "name",
+          "endpoint",
+          "index_pattern"
+        ],
+        "title": "SourceConfig"
+      },
+      "SourceView": {
+        "properties": {
+          "source_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$",
+            "title": "Source Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "endpoint": {
+            "type": "string",
+            "maxLength": 2048,
+            "title": "Endpoint"
+          },
+          "index_pattern": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "pattern": "^[a-z0-9][a-z0-9._*-]*$",
+            "title": "Index Pattern"
+          },
+          "credentials_env_ref": {
+            "anyOf": [
+              {
+                "type": "string",
+                "const": "SOURCE"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Credentials Env Ref"
+          },
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "untested",
+              "connected",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "last_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Error"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "source_id",
+          "name",
+          "endpoint",
+          "index_pattern",
+          "enabled",
+          "status",
+          "last_error",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SourceView"
+      },
+      "Sources": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SourceView"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "Sources"
+      },
+      "Step": {
+        "properties": {
+          "execution_event_id": {
+            "type": "string",
+            "title": "Execution Event Id"
+          },
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence"
+          },
+          "agent": {
+            "type": "string",
+            "enum": [
+              "supervisor",
+              "retrieval",
+              "analysis",
+              "verification"
+            ],
+            "title": "Agent"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "started",
+              "completed",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "occurred_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Occurred At"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "execution_event_id",
+          "sequence",
+          "agent",
+          "status",
+          "occurred_at",
+          "summary"
+        ],
+        "title": "Step"
+      },
+      "Steps": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Step"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "next_after": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next After"
+          },
+          "investigation_status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "completed",
+              "inconclusive",
+              "failed"
+            ],
+            "title": "Investigation Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "items",
+          "next_after",
+          "investigation_status"
+        ],
+        "title": "Steps"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

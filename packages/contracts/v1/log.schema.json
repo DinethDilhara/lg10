@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lg-ten.local/contracts/v1/log.schema.json",
+  "title": "LG Ten log v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "source_id",
+    "event_time",
+    "ingested_at",
+    "host",
+    "service",
+    "severity",
+    "message"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "event_time": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "ingested_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "service": {
+      "type": "string",
+      "minLength": 1
+    },
+    "severity": {
+      "enum": [
+        "TRACE",
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR",
+        "FATAL",
+        "UNKNOWN"
+      ]
+    },
+    "message": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attributes": {
+      "type": "object"
+    }
+  }
+}

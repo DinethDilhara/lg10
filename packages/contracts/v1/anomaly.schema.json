@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lg-ten.local/contracts/v1/anomaly.schema.json",
+  "title": "LG Ten anomaly v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "anomaly_id",
+    "source_id",
+    "window_start",
+    "window_end",
+    "score",
+    "model_version",
+    "feature_summary",
+    "log_ids"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "anomaly_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+    },
+    "window_start": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "window_end": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "Z$"
+    },
+    "score": {
+      "type": "number"
+    },
+    "model_version": {
+      "type": "string",
+      "minLength": 1
+    },
+    "feature_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_count",
+        "error_count",
+        "error_ratio",
+        "unique_message_count",
+        "event_time_start",
+        "event_time_end"
+      ],
+      "properties": {
+        "event_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_ratio": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "unique_message_count": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "event_time_start": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        },
+        "event_time_end": {
+          "type": "string",
+          "format": "date-time",
+          "pattern": "Z$"
+        }
+      }
+    },
+    "log_ids": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 256,
+        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/-]*$"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  }
+}

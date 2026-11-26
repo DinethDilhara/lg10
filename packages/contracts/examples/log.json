@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0.0",
+  "event_id": "fixture:db:0001",
+  "source_id": "fixture",
+  "event_time": "2020-01-01T00:00:00Z",
+  "ingested_at": "2026-11-25T00:00:00Z",
+  "host": "db-01",
+  "service": "database",
+  "severity": "ERROR",
+  "message": "Database listener unavailable"
+}

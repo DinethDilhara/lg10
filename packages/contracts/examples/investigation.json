@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0.0",
+  "investigation_id": "sample-investigation-001",
+  "anomaly_id": "sample-anomaly-001",
+  "status": "inconclusive",
+  "hypotheses": [],
+  "evidence": [
+    {
+      "evidence_id": "evidence-001",
+      "source_id": "fixture",
+      "index": "lg-ten-logs-v1",
+      "event_id": "fixture:db:0001",
+      "timestamp": "2020-01-01T00:00:00Z",
+      "excerpt": "Database listener unavailable"
+    }
+  ],
+  "verification": {
+    "status": "inconclusive",
+    "checks": []
+  },
+  "agent_steps": [
+    {
+      "execution_event_id": "sample-step-001",
+      "sequence": 0,
+      "agent": "verification",
+      "status": "completed",
+      "occurred_at": "2026-11-25T00:00:11Z",
+      "summary": "Schema example only; no investigation has run."
+    }
+  ],
+  "duration_ms": 0
+}
